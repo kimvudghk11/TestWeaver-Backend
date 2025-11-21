@@ -6,6 +6,7 @@ const errorHandler = require("./middlewares/errorHandler");
 // routes
 const authRoutes = require("./routes/auth.routes");
 const projectRoutes = require("./routes/project.routes");
+const testcaseRoutes = require("./routes/testcase.routes");
 
 const app = express();
 
@@ -19,7 +20,8 @@ app.use(cookieParser());
 // routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/projects", projectRoutes);
+app.use("/api/v1/testcases", testcaseRoutes);
 
-app. use(errorHandler);
+app.use(errorHandler);
 
 module.exports = app;
