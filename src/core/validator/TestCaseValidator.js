@@ -14,7 +14,7 @@ class TestCaseValidator {
             throw err;
         }
 
-        for(const p of parameters) {
+        for (const p of parameters) {
             if (!p.name || typeof p.name !== "string") {
                 const err = new Error("Parameter name is required");
                 err.status = 400;
@@ -47,3 +47,4 @@ class TestCaseValidator {
 
     }
 }
+module.exports = TestCaseValidator;
