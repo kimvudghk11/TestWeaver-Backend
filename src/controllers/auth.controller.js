@@ -10,8 +10,8 @@ const register = asyncHandler(async (req, res) => {
     res
         .cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "none",
-            secure: true,
+            sameSite: "lax",
+            secure: false,
         })
         .status(201)
         .json({
@@ -32,8 +32,8 @@ const login = asyncHandler(async (req, res) => {
     res
         .cookie("access_token", token, {
             httpOnly: true,
-            sameSite: "none",
-            secure: true,
+            sameSite: "lax",
+            secure: false,
         })
         .json({
             success: true,
