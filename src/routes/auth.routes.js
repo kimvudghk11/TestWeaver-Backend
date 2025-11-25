@@ -30,4 +30,7 @@ router.post("/reset-password", resetPasswordValidation, validateRequest, authCtr
 //(로그인 상태) 비밀번호 변경
 router.post("/change-password", auth, changePasswordValidation, validateRequest, authCtrl.changePassword);
 
+// 로그인 상태 확인
+router.get("/me", auth, authCtrl.me);
+
 module.exports = router;

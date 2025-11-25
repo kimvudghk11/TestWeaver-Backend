@@ -89,6 +89,15 @@ const changePassword = asyncHandler(async (req, res) => {
     });
 });
 
+const me = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    res.json({
+        success: true,
+        data: user,
+    });
+});
+
 module.exports = {
     register,
     login,
@@ -96,4 +105,5 @@ module.exports = {
     findId,
     resetPassword,
     changePassword,
+    me,
 };
