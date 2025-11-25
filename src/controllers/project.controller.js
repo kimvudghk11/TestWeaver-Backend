@@ -1,6 +1,8 @@
 const asyncHandler = require("../utils/asyncHandler");
 const projectService = require("../services/project.service");
 
+const testcaseService = require("../services/testcase.service");
+
 const create = asyncHandler(async (req, res) => {
     const data = await projectService.create(req.body);
 
@@ -35,10 +37,33 @@ const remove = asyncHandler(async (req, res) => {
     res.json({ success: true, data });
 });
 
+const generateModel = asyncHandler(async (req, res) => {
+    const projectId = req.params.id;
+
+    const body = {
+        projectId,
+        strategy: req.body.strategy,
+        coverage: req.body.coverage,
+        parameters: req.body.parameters
+    };
+
+    const testCaseSet = await testcaseService.generate(body);
+
+    res.json({ success: true, data: testCaseSet });
+});
+
+const getTestCases = asyncHandler(async (req, res) => {
+    const projectId = req.params.id;
+    const testCases = await testcaseService.getByProject(projectId);
+    res.json({ success: true, data: testCases });
+});
+
 module.exports = {
     create,
     list,
     detail,
     update,
     remove,
+    generateModel,
+    getTestCases,
 };

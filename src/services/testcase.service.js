@@ -12,19 +12,47 @@ const { createExporter } = require("../core/export/ExporterFactory");
 const builder = new TestCaseBuilder();
 const validator = new DefaultTestCaseValidator();
 
+async function getByProject(projectId) {
+    // 1) 프로젝트에 해당하는 TestCaseSet 목록 가져오기
+    const sets = await testCaseRepo.findSetsByProject(projectId);
+
+    // 2) 각 세트별 items도 함께 가져오기
+    const result = [];
+
+    for (const s of sets) {
+        const items = await testCaseRepo.findItemsBySetId(s.id);
+
+        const cases = items.reduce((acc, item) => {
+            if (!acc[item.case_index]) acc[item.case_index] = {};
+            acc[item.case_index][item.param_name] = item.param_value;
+            return acc;
+        }, []);
+
+        result.push({
+            id: s.id,
+            name: s.name,
+            strategy: s.strategy,
+            parameterCount: s.parameter_count,
+            testCases: cases
+        });
+    }
+
+    return result;
+}
+
 async function generate(body) {
     const reqDto = new TestCaseGenerateReq(body);
     const strategy = createPairwiseStrategy(reqDto.strategy);
+
     const rawCases = strategy.generate(reqDto.parameters);
 
     validator.validate(reqDto.parameters, rawCases);
 
-    // DB 저장용 구조
     const builtCases = builder.buildForPersistence(rawCases);
 
     const setEntity = await testCaseRepo.createSet({
         projectId: reqDto.projectId,
-        name: reqDto.name,
+        name: reqDto.name || "Default Set",
         strategy: reqDto.strategy,
         parameterCount: reqDto.parameters.length,
     });
@@ -33,11 +61,7 @@ async function generate(body) {
 
     const respCases = builtCases.map(c => {
         const obj = {};
-
-        for (const p of c.params) {
-            obj[p.name] = p.value;
-        }
-
+        for (const p of c.params) obj[p.name] = p.value;
         return new TestCaseRowResp(c.caseIndex, obj);
     });
 
@@ -111,6 +135,7 @@ async function exportSet(setId, type) {
 }
 
 module.exports = {
+    getByProject,
     generate,
     getSet,
     exportSet,

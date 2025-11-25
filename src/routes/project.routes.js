@@ -9,4 +9,7 @@ router.get("/:id", projectCtrl.detail);
 router.put("/:id", projectCtrl.update);
 router.delete("/:id", projectCtrl.remove);
 
+router.post("/:id/model", projectCtrl.generateModel);
+router.get("/:id/testcases", projectCtrl.getTestCases);
+
 module.exports = router;

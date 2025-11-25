@@ -30,8 +30,7 @@ async function insertItems(setId, builtCases) {
         }
     }
 
-    if (values.length === 0)
-        return;
+    if (values.length === 0) return;
 
     await db.query(
         `INSERT INTO test_case_items
@@ -47,13 +46,26 @@ async function findSetById(id) {
         [id]
     );
 
-    return [rows] ?? null;
+    return rows[0] ?? null;
 }
 
 async function findItemsBySetId(setId) {
     const [rows] = await db.execute(
-        `SELECT * FROM test_case_items WHERE set_id = ? ORDER BY case_index ASC, id ASC`,
+        `SELECT * FROM test_case_items
+        WHERE set_id = ?
+        ORDER BY case_index ASC, id ASC`,
         [setId]
+    );
+
+    return rows;
+}
+
+async function findSetsByProject(projectId) {
+    const [rows] = await db.execute(
+        `SELECT * FROM test_case_sets
+        WHERE project_id = ?
+        ORDER BY id DESC`,
+        [projectId]
     );
 
     return rows;
@@ -64,5 +76,5 @@ module.exports = {
     insertItems,
     findSetById,
     findItemsBySetId,
+    findSetsByProject, // ← 반드시 export!
 };
-
