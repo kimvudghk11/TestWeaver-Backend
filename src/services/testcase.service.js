@@ -3,9 +3,12 @@ const {
     TestCaseSetResp,
     TestCaseRowResp,
 } = require("../dto/testcase.dto");
+
 const { createPairwiseStrategy } = require("../core/strategy/pairwise/PairwiseStrategyFactory");
+
 const TestCaseBuilder = require("../core/builder/TestCaseBuilder");
 const DefaultTestCaseValidator = require("../core/validator/DefaultTestCaseValidator");
+
 const testCaseRepo = require("../repositories/testcase.repository");
 const { createExporter } = require("../core/export/ExporterFactory");
 
@@ -30,8 +33,9 @@ async function getByProject(projectId) {
             id: s.id,
             name: s.name,
             strategy: s.strategy,
+            coverage: s.coverage,
             parameterCount: s.parameter_count,
-            testCases: cases
+            testCases: cases,
         });
     }
 
@@ -40,7 +44,8 @@ async function getByProject(projectId) {
 
 async function generate(body) {
     const reqDto = new TestCaseGenerateReq(body);
-    const strategy = createPairwiseStrategy(reqDto.strategy);
+
+    const strategy = createPairwiseStrategy(reqDto.strategy, reqDto.coverage);
 
     const rawCases = strategy.generate(reqDto.parameters);
 
@@ -48,10 +53,15 @@ async function generate(body) {
 
     const builtCases = builder.buildForPersistence(rawCases);
 
+    // 자동 세트 이름 생성
+    const paramNames = reqDto.parameters.map(p => p.name);
+    const autoName = `${reqDto.strategy} ${reqDto.coverage} - ${paramNames.join(", ")}`;
+
     const setEntity = await testCaseRepo.createSet({
         projectId: reqDto.projectId,
-        name: reqDto.name || "Default Set",
+        name: autoName,
         strategy: reqDto.strategy,
+        coverage: reqDto.coverage,
         parameterCount: reqDto.parameters.length,
     });
 
@@ -67,6 +77,7 @@ async function generate(body) {
         id: setEntity.id,
         name: setEntity.name,
         strategy: setEntity.strategy,
+        coverage: setEntity.coverage,
         parameterCount: setEntity.parameter_count,
         testCases: respCases,
     });
@@ -77,11 +88,11 @@ async function getSet(setId) {
     if (!setEntity) {
         const err = new Error("Test case set not found");
         err.status = 404;
-
         throw err;
     }
 
     const items = await testCaseRepo.findItemsBySetId(setId);
+
     const rows = builder.buildForResponse(items).map(
         r => new TestCaseRowResp(r.index, r.values)
     );
@@ -90,45 +101,46 @@ async function getSet(setId) {
         id: setEntity.id,
         name: setEntity.name,
         strategy: setEntity.strategy,
+        coverage: setEntity.coverage,
         parameterCount: setEntity.parameter_count,
         testCases: rows,
     });
 }
 
-/**
- * Export: CSV or Excel
- * @param {number} setId
- * @param {string} type 'csv' | 'excel' | 'xlsx'
- * @returns {Promise<{ filename: string, mime: string, data: Buffer }>}
- */
 async function exportSet(setId, type) {
     const set = await getSet(setId);
-    const exporter = createExporter(type);
-    const result = await exporter.export(set.testCases);
 
-    const t = (type || "csv").toLowerCase();
-    let mime, ext;
+    // 🔥 builder에서 이미 values는 string-only임
+    const flatCases = set.testCases.map(tc => {
+        const row = { No: tc.index + 1 };
 
-    if (t === "xlsx" || t === "excel") {
-        mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        ext = "xlsx";
-    } else {
-        mime = "text/csv; charset-utf-8";
-        ext = "csv";
+        for (const [k, v] of Object.entries(tc.values)) {
+            row[k] = v ?? "";
+        }
+
+        return row;
+    });
+
+    if (!flatCases.length) {
+        throw new Error("No test case data for export.");
     }
 
-    // CSV는 string, Excel은 Buffer → 통일해서 Buffer로 변환
-    const data =
-        typeof result === "string"
-            ? Buffer.from(result, "utf8")
-            : result;
+    const exporter = createExporter(type);
+    const result = await exporter.export(flatCases);
 
-    const filename = `testcases_${setId}.${ext}`;
+    const ext = type === "excel" ? "xlsx" : "csv";
+    const mime = type === "excel"
+        ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        : "text/csv; charset=utf-8";
+
+    const safeName = set.name.replace(/[^a-zA-Z0-9가-힣,\-\s]/g, "_");
 
     return {
-        filename,
+        filename: `${safeName}.${ext}`,
         mime,
-        data,
+        data: Buffer.isBuffer(result)
+            ? result
+            : Buffer.from(result, "utf-8"),
     };
 }
 

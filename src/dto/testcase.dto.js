@@ -7,30 +7,36 @@ class ParameterDto {
 
 // 생성 요청 DTO
 class TestCaseGenerateReq {
-    constructor({ projectId, name, strategy, parameters }) {
+    constructor({ projectId, name, strategy, coverage, parameters }) {
         this.projectId = projectId ?? null;
-        this.name = name;
+        this.name = name ?? null;
+
         this.strategy = strategy || "IPO";
-        this.parameters = (parameters ?? []).map(p => new ParameterDto(p));
+        this.coverage = coverage || "2-way";
+
+        this.parameters = (parameters ?? []).map(
+            (p) => new ParameterDto(p)
+        );
     }
 }
 
-// 응답용: 테스트 케이스 한줄
+// 응답용: 테스트 케이스 한 줄
 class TestCaseRowResp {
     constructor(index, map) {
         this.index = index;
-        this.values = map; // { paramName: value }
+        this.values = map ?? {};
     }
 }
 
 // 응답용: 세트 전체
 class TestCaseSetResp {
-    constructor({ id, name, strategy, parameterCount, testCases }) {
+    constructor({ id, name, strategy, coverage, parameterCount, testCases }) {
         this.id = id;
         this.name = name;
         this.strategy = strategy;
+        this.coverage = coverage;
         this.parameterCount = parameterCount;
-        this.testCases = testCases // TestCaseRowResp[]
+        this.testCases = testCases;
     }
 }
 

@@ -1,10 +1,10 @@
 const db = require("../config/db");
 
-async function createSet({ projectId, name, strategy, parameterCount }) {
+async function createSet({ projectId, name, strategy, coverage, parameterCount }) {
     const [result] = await db.execute(
-        `INSERT INTO test_case_sets (project_id, name, strategy, parameter_count)
-        VALUES (?, ?, ?, ?)`,
-        [projectId, name, strategy, parameterCount]
+        `INSERT INTO test_case_sets (project_id, name, strategy, coverage, parameter_count)
+        VALUES (?, ?, ?, ?, ?)`,
+        [projectId, name, strategy, coverage, parameterCount]
     );
 
     const id = result.insertId;

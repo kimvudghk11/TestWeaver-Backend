@@ -1,16 +1,17 @@
 const IPOStrategy = require("./IPOStrategy");
 const IPOGStrategy = require("./IPOGStrategy");
 
-function createPairwiseStrategy(type) {
-    const t = (type || "IPO").toUpperCase();
+/**
+ * @param {"IPO"|"IPOG"} type 
+ * @param {"2-way"|"3-way"} coverage
+ */
+function createPairwiseStrategy(type, coverage) {
+    const way = Number(String(coverage).charAt(0)); // "2-way" → 2
 
-    switch (t) {
-        case "IPOG":
-            return new IPOGStrategy();
-        case "IPO":
-        default:
-            return new IPOStrategy();
-    }
+    if (type === "IPO") return new IPOStrategy(way);
+    if (type === "IPOG") return new IPOGStrategy(way);
+
+    throw new Error(`Invalid strategy: ${type}`);
 }
 
-module.exports = { createPairwiseStrategy, };
+module.exports = { createPairwiseStrategy };
