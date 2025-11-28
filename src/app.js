@@ -3,6 +3,10 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("./middlewares/errorHandler");
 
+// swagger
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./config/swagger");
+
 // routes
 const authRoutes = require("./routes/auth.routes");
 const projectRoutes = require("./routes/project.routes");
@@ -16,6 +20,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // routes
 app.use("/api/v1/auth", authRoutes);
