@@ -25,7 +25,10 @@ const testcaseService = require("../services/testcase.service");
  *         description: Project created successfully
  */
 const create = asyncHandler(async (req, res) => {
-    const data = await projectService.create(req.body);
+    const userId = req.user?.id || 1;
+
+    const requestData = { userId, ...req.body };
+    const data = await projectService.create(requestData);
 
     res.status(201).json({ success: true, data });
 });
@@ -48,7 +51,9 @@ const create = asyncHandler(async (req, res) => {
  */
 const list = asyncHandler(async (req, res) => {
     const q = req.query.q ?? "";
-    const data = await projectService.list(q);
+
+    const userId = req.user?.id || 1;
+    const data = await projectService.list(userId, q);
 
     res.json({ success: true, data });
 });

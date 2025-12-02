@@ -1,5 +1,6 @@
 class ProjectCreateReq {
-    constructor({ name, description }) {
+    constructor({ userId, name, description }) {
+        this.userId = userId;
         this.name = name;
         this.description = description;
     }

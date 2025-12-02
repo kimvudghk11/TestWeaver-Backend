@@ -8,10 +8,10 @@ async function create(reqBody) {
     return new ProjectResp(entity);
 }
 
-async function list(query) {
+async function list(userId, query) {
     const rows = query
-        ? await ProjectRepo.searchByName(query)
-        : await ProjectRepo.findAll()
+        ? await ProjectRepo.searchByName(userId, query)
+        : await ProjectRepo.findAll(userId);
 
     return rows.map(row => new ProjectResp(row));
 }

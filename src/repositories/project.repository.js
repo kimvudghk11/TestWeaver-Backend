@@ -1,9 +1,9 @@
 const db = require("../config/db");
 
-async function createProject({ name, description }) {
+async function createProject({ userId, name, description }) {
     const [result] = await db.execute(
-        `INSERT INTO test_projects (name, description) VALUES (?, ?)`,
-        [name, description ?? null]
+        `INSERT INTO test_projects (user_id, name, description) VALUES (?, ?, ?)`,
+        [userId, name, description ?? null]
     );
 
     return await findById(result.insertId);
@@ -18,16 +18,18 @@ async function findById(id) {
     return rows[0] ?? null;
 }
 
-async function findAll() {
-    const [rows] = await db.execute(`SELECT * FROM test_projects ORDER BY id DESC`);
+async function findAll(userId) {
+    const [rows] = await db.execute(`SELECT * FROM test_projects WHERE user_id = ? ORDER BY id DESC`,
+        [userId]
+    );
 
     return rows;
 }
 
-async function searchByName(keyword) {
+async function searchByName(userId, keyword) {
     const [rows] = await db.execute(
-        `SELECT * FROM test_projects WHERE LOWER(name) LIKE ? ORDER BY id DESC`,
-        [`%${keyword.toLowerCase()}%`]
+        `SELECT * FROM test_projects WHERE user_id = ? AND LOWER(name) LIKE ? ORDER BY id DESC`,
+        [userId, `%${keyword.toLowerCase()}%`]
     );
 
     return rows;
@@ -38,7 +40,7 @@ async function updateProject(id, { name, description }) {
         `UPDATE test_projects SET name = ?, description = ? WHERE id = ?`,
         [name, description ?? null, id]
     );
-    
+
     return await findById(id);
 }
 
