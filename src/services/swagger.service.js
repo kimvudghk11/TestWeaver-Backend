@@ -7,7 +7,7 @@ const SwaggerParser = require("@apidevtools/swagger-parser");
 async function parseSwagger(url) {
     try {
         // 1. URL에서 Swagger JSON을 가져와서 유효성 검사 및 파싱
-        const api = await SwaggerParser.validate(url);
+        const api = await SwaggerParser.parse(url);
         console.log(`Swagger Title: ${api.info.title}`);
 
         const endpoints = [];

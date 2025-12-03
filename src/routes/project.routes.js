@@ -5,6 +5,7 @@ const projectCtrl = require("../controllers/project.controller");
 
 router.post("/", projectCtrl.create);
 router.get("/", projectCtrl.list);
+router.post("/analyze-swagger", projectCtrl.analyzeSwagger);
 router.get("/:id", projectCtrl.detail);
 router.put("/:id", projectCtrl.update);
 router.delete("/:id", projectCtrl.remove);

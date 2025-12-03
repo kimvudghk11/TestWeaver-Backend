@@ -35,10 +35,10 @@ async function searchByName(userId, keyword) {
     return rows;
 }
 
-async function updateProject(id, { name, description }) {
+async function updateProject(id, { name, description, swaggerURL }) {
     await db.execute(
-        `UPDATE test_projects SET name = ?, description = ? WHERE id = ?`,
-        [name, description ?? null, id]
+        `UPDATE test_projects SET name = ?, description = ?, swagger_url = ? WHERE id = ?`,
+        [name, description ?? null, swaggerURL ?? null, id]
     );
 
     return await findById(id);
